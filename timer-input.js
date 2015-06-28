@@ -44,6 +44,10 @@
   };
 
   function TimerInput(elem, listener) {
+    if (!(this instanceof TimerInput)) {
+      return new TimerInput(elem, listener);
+    }
+
     var that = this;
 
     that.elem = elem;
@@ -83,6 +87,8 @@
 
   proto.set = function(newValue) {
     var oldValue = this.elem.value;
+
+    newValue = newValue + '';
     this.elem.value = newValue;
 
     this.trigger({
