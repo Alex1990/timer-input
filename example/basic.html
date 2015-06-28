@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>TimerInput basic example</title>
+  <style>
+    body {
+      margin: 0;
+      font-size: 16px;
+      font-family: sans-serif;
+      background-color: #fefefe;
+    }
+    .btn {
+      margin-left: 10px;
+      -webkit-box-sizing: border-box;
+      -moz-box-sizing: border-box;
+      box-sizing: border-box;
+      display: inline-block;
+      height: 28px;
+      padding: 6px 10px 8px;
+      font-size: 14px;
+      line-height: 1;
+      font-family: sans-serif;
+      background: #f0f0f0;
+      border: 1px solid #d0d0d0;
+      cursor: pointer;
+      overflow: visible;
+    }
+    .btn:hover {
+      background-color: #fafafa;
+      border-color: #ccc;
+    }
+    .form {
+      padding: 20px;
+    }
+    .form label {
+      display: inline-block;
+      width: 120px;
+    }
+    .form input,
+    .form textarea {
+      padding: 5px;
+      font-size: 14px;
+      line-height: 1;
+      border: 1px solid #d0d0d0;
+    }
+    .form input:hover,
+    .form textarea:hover {
+      border-color: #aaa;
+    }
+    .form textarea {
+      vertical-align: top;
+      overflow: auto;
+    }
+  </style>
+</head>
+<body>
+  <form action="" class="form">
+    <p>
+      <label for="keyword">Keyword:</label><input type="text" id="keyword">
+      <button id="kw-detach-all" class="btn" type="button">Detach all listeners</button>
+      <button id="kw-destroy" class="btn" type="button">Stop monitor</button>
+    </p>
+    <p>
+      <label for="description">Description:</label><textarea name="" id="description" cols="30" rows="10"></textarea>
+      <button id="desc-detach-all" class="btn" type="button">Detach all listeners</button>
+      <button id="desc-destroy" class="btn" type="button">Stop monitor</button>
+    </p>
+  </form>
+
+  <script src="../timer-input.js"></script>
+  <script>
+    var byId = function(id) {
+      return document.getElementById(id);
+    };
+
+    var liner = Array(81).join('-');
+
+    // input element
+    var keyword = byId('keyword');
+    var kwInput = new TimerInput(keyword);
+
+    console.log('get(): ' + kwInput.get());
+
+    kwInput.on(function(e) {
+      console.log(liner);
+      console.log('The value of the keyword is changed!');
+      console.log(this);
+      console.log('e.oldValue: ' + e.oldValue);
+      console.log('e.newValue: ' + e.newValue);
+    });
+
+    var anotherListener = function(e) {
+      console.log(liner);
+      console.log(this);
+      console.log('Another listener is called');
+      console.log('e.oldValue: ' + e.oldValue);
+      console.log('e.newValue: ' + e.newValue);
+    };
+
+    kwInput.on(anotherListener);
+
+    kwInput.set('foo');
+
+    kwInput.off(anotherListener);
+    kwInput.set('bar');
+    console.log(kwInput.get() + ' : it should return "bar"');
+
+    byId('kw-detach-all').onclick = function() {
+      kwInput.off();
+      kwInput.set('baz');
+      console.log(kwInput.get() + ' : it should return "baz"');
+    };
+
+    byId('kw-destroy').onclick = function() {
+      kwInput.destroy();
+      console.log(kwInput);
+      byId('kw-detach-all').onclick = null;
+      byId('kw-destroy').onclick = null;
+    };
+
+    // textarea element
+    console.log('====================================');
+
+    var description = document.getElementById('description');
+    var descInput = new TimerInput(description);
+
+    console.log('get(): ' + descInput.get());
+
+    descInput.on(function(e) {
+      console.log(liner);
+      console.log('The value of the description is changed!');
+      console.log('e.oldValue: ' + e.oldValue);
+      console.log('e.newValue: ' + e.newValue);
+    });
+
+    var anotherListener = function(e) {
+      console.log(liner);
+      console.log('Another listener is called');
+      console.log('e.oldValue: ' + e.oldValue);
+      console.log('e.newValue: ' + e.newValue);
+    };
+
+    descInput.on(anotherListener);
+
+    descInput.set('foo');
+
+    descInput.off(anotherListener);
+    descInput.set('bar');
+    console.log(descInput.get() + ' : it should return "bar"');
+
+    byId('desc-detach-all').onclick = function() {
+      descInput.off();
+      descInput.set('baz');
+      console.log(descInput.get() + ' : it should return "baz"');
+    };
+
+    byId('desc-destroy').onclick = function() {
+      descInput.destroy();
+      console.log(descInput);
+      byId('desc-detach-all').onclick = null;
+      byId('desc-destroy').onclick = null;
+    };
+  </script>
+</body>
+</html>

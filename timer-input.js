@@ -23,9 +23,6 @@
 
   'use strict';
 
-  var interval = 1000/60;
-  var slice = Array.prototype.slice;
-
   var addEvent = function(elem, type, listener) {
     if (elem.addEventListener) {
       elem.addEventListener(type, listener, false);
@@ -43,6 +40,14 @@
     }
   };
 
+  var interval = 1000/60;
+  var detachDelay = 100; // For drap-and-drop interaction
+
+  function TimerInputEvent(props) {
+    this.oldValue = props.oldValue;
+    this.newValue = props.newValue;
+  }
+
   function TimerInput(elem, listener) {
     if (!(this instanceof TimerInput)) {
       return new TimerInput(elem, listener);
@@ -54,27 +59,29 @@
     that.lastValue = elem.value;
     that.listeners = [];
 
-    that.onFocusChange = function(e) {
+    that._onFocusChange = function(e) {
       e = e || window.event;
       if (e.type === 'focus') {
+
         that.timerId = setInterval(function() {
           if (that.lastValue !== elem.value) {
-            that.trigger({
+            that.trigger(new TimerInputEvent({
               oldValue: that.lastValue,
               newValue: elem.value
-            });
+            }));
             that.lastValue = elem.value;
           }
         }, interval);
+
       } else {
         setTimeout(function() {
           clearInterval(that.timerId);
-        }, 0);
+        }, detachDelay);
       }
     };
 
-    addEvent(elem, 'focus', that.onFocusChange);
-    addEvent(elem, 'blur', that.onFocusChange);
+    addEvent(elem, 'focus', that._onFocusChange);
+    addEvent(elem, 'blur', that._onFocusChange);
 
     that.on(listener);
   }
@@ -91,10 +98,12 @@
     newValue = newValue + '';
     this.elem.value = newValue;
 
-    this.trigger({
+    this.trigger(new TimerInputEvent({
       oldValue: oldValue,
       newValue: newValue
-    });
+    }));
+
+    this.lastValue = newValue;
   };
 
   proto.on = function(listener) {
@@ -116,7 +125,7 @@
   };
 
   proto.trigger = function() {
-    var args = slice.call(arguments);
+    var args = Array.prototype.slice.call(arguments);
 
     for (var i = 0, len = this.listeners.length; i < len; i++) {
       this.listeners[i].apply(this.elem, args);
@@ -125,8 +134,9 @@
 
   proto.destroy = function() {
     clearInterval(this.timerId);
-    removeEvent(this.elem, 'focus', this.onFocusChange);
-    removeEvent(this.elem, 'blur', this.onFocusChange);
+    removeEvent(this.elem, 'focus', this._onFocusChange);
+    removeEvent(this.elem, 'blur', this._onFocusChange);
+    this.elem = this.timerId = this.lastValue = this._onFocusChange = this.listeners = null;
   };
 
   return TimerInput;

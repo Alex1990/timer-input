@@ -13,6 +13,8 @@ kwInput.on(function(e) {
 });
 ```
 
+This module supports as a CommonJS/AMD module.
+
 ## Packages
 
 **NPM:**
@@ -29,6 +31,8 @@ Create a `TimerInput` instance to attach/detach one or more listeners. When the 
 
 - `oldValue`: A string represents the value before changing.
 - `newValue`: A string represents the value after changing.
+
+In the listener, `this` refers the `input` or `textarea` element.
 
 **The `TimerInput` instance methods:**
 
