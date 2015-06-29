@@ -60,6 +60,10 @@ Execute all exist listeners with some optional parameters passed.
 
 The `input` or `textarea` element is no longer monitored.
 
+## Compatibility
+
+IE6+ and other modern browsers.
+
 ## License
 
 MIT
