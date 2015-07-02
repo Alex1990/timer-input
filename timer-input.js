@@ -41,52 +41,91 @@
   };
 
   var interval = 1000/60;
-  var detachDelay = 100; // For drap-and-drop interaction
+  var stopDelay = 100; // For drap-and-drop interaction
+
+  var defaults = {
+    bindEvent: true
+  };
+
+  var extend = function(dest) {
+    var args = Array.prototype.slice.call(arguments, 1);
+    for (var i = 0; i < args.length; i++) {
+      for (var p in args[i]) {
+        if (args[i].hasOwnProperty(p)) {
+          dest[p] = args[i][p];
+        }
+      }
+    }
+    return dest;
+  };
 
   function TimerInputEvent(props) {
+    this.type = 'timerinput';
     this.oldValue = props.oldValue;
     this.newValue = props.newValue;
   }
 
-  function TimerInput(elem, listener) {
+  function TimerInput(elem, opts, listener) {
     if (!(this instanceof TimerInput)) {
-      return new TimerInput(elem, listener);
+      return new TimerInput(elem, opts, listener);
     }
 
-    var that = this;
+    if (typeof opts === 'function') {
+      listener = opts;
+      opts = {};
+    }
 
-    that.elem = elem;
-    that.lastValue = elem.value;
-    that.listeners = [];
+    this.opts = opts = extend({}, defaults, opts);
 
-    that._onFocusChange = function(e) {
-      e = e || window.event;
-      if (e.type === 'focus') {
+    this.elem = elem;
+    this.lastValue = elem.value;
+    this.listeners = [];
 
-        that.timerId = setInterval(function() {
-          if (that.lastValue !== elem.value) {
-            that.trigger(new TimerInputEvent({
-              oldValue: that.lastValue,
-              newValue: elem.value
-            }));
-            that.lastValue = elem.value;
-          }
-        }, interval);
-
-      } else {
-        setTimeout(function() {
-          clearInterval(that.timerId);
-        }, detachDelay);
-      }
-    };
-
-    addEvent(elem, 'focus', that._onFocusChange);
-    addEvent(elem, 'blur', that._onFocusChange);
-
-    that.on(listener);
+    opts.bindEvent && this._bindEvent();
+    if (listener != null) {
+      this.on(listener);
+    }
   }
 
   var proto = TimerInput.prototype;
+
+  proto._bindEvent = function() {
+    var elem = this.elem;
+    var that = this;
+
+    this._start = function() {
+      that.start();
+    };
+
+    this._stop = function() {
+      that.stop();
+    };
+
+    addEvent(elem, 'focus', this._start);
+    addEvent(elem, 'blur', this._stop);
+  };
+
+  proto.start = function() {
+    var elem = this.elem;
+    var that = this;
+
+    this.timerId = setInterval(function() {
+      if (that.lastValue !== elem.value) {
+        that.trigger(new TimerInputEvent({
+          oldValue: that.lastValue,
+          newValue: elem.value
+        }));
+        that.lastValue = elem.value;
+      }
+    }, interval);
+  };
+
+  proto.stop = function() {
+    var that = this;
+    setTimeout(function() {
+      clearInterval(that.timerId);
+    }, stopDelay);
+  };
 
   proto.get = function() {
     return this.elem.value;
@@ -108,6 +147,7 @@
 
   proto.on = function(listener) {
     if (typeof listener === 'function') {
+      if (this.listeners == null) this.listeners = [];
       this.listeners.push(listener);
     }
   };
@@ -134,9 +174,16 @@
 
   proto.destroy = function() {
     clearInterval(this.timerId);
-    removeEvent(this.elem, 'focus', this._onFocusChange);
-    removeEvent(this.elem, 'blur', this._onFocusChange);
-    this.elem = this.timerId = this.lastValue = this._onFocusChange = this.listeners = null;
+    if (this.opts.bindEvent) {
+      removeEvent(this.elem, 'focus', this._start);
+      removeEvent(this.elem, 'blur', this._stop);
+    }
+    this.elem =
+    this.timerId =
+    this.lastValue =
+    this._start =
+    this._stop =
+    this.listeners = null;
   };
 
   return TimerInput;

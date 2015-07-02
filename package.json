@@ -1,6 +1,6 @@
 {
   "name": "timer-input",
-  "version": "1.0.1",
+  "version": "1.1.1",
   "description": "Monitor if the value of an input or textarea element is changed",
   "main": "timer-input.js",
   "author": {
